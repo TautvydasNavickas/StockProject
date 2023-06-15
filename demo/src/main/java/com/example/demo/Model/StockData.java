@@ -78,7 +78,7 @@ public class StockData {
     public void setAdjClose(double adjClose) {
         this.adjClose = adjClose;
     }
-// Getters and setters
+
 
     public LocalDate getDate() {
         return date;
