@@ -152,11 +152,23 @@
       const { ctx, data, scales: {x, y} } = chart;
       ctx.save();
 
+      const closingPrice = data.datasets[0].data.map(datapoint => {
+      return datapoint.c;
+      });
+
+      const average = 3;
+      const movingAverage = [];
+      for (let i = 0; i < closingPrice.length; i++) {
+      const mean = (closingPrice[i - 2] + closingPrice [i - 1] + closingPrice[i]) / average;
+      movingAverage.push(mean);
+      };
+
+
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(102, 102, 102, 1)';
-      ctx.moveTo(chart.getDatasetMeta(0).data[0].x, y.getPixelForValue(data.datasets[0].data[0].c));
+      ctx.moveTo(chart.getDatasetMeta(0).data[0].x, y.getPixelForValue(movingAverage[0]));
       for (let i = 1; i < data.datasets[0].data.length; i++) {
-      ctx.lineTo(chart.getDatasetMeta(0).data[i].x, y.getPixelForValue(data.datasets[0].data[i].c));
+      ctx.lineTo(chart.getDatasetMeta(0).data[i].x, y.getPixelForValue(movingAverage[i]));
       }
       ctx.stroke();
       }
