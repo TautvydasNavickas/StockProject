@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Charts</title>
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/2.0.0/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@2.0.0/dist/chartjs-adapter-moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.1/dist/chartjs-chart-financial.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <script src="script.js"></script>
+
+
+
+
+</head>
+<body>
+<div id="chartContainer">
+    <canvas id="ohlcChart"></canvas>
+</div>
+
+<form>
+    <label for="stockTicker">Stock Ticker:</label>
+    <input type="text" id="stockTicker" required>
+    <br>
+    <label for="startDate">Start Date:</label>
+    <input type="date" id="startDate" required>
+    <br>
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate" required>
+    <br>
+    <button id="fetchDataBtn">Fetch Data</button>
+</form>
+
+
+</body>
+</html>

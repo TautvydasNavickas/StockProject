@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Getting Started with Chart JS with www.chartjs3.com</title>
+  <style>
+      * {
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+      }
+      .chartMenu {
+        width: 100vw;
+        height: 40px;
+        background: #1A1A1A;
+        color: rgba(54, 162, 235, 1);
+      }
+      .chartMenu p {
+        padding: 10px;
+        font-size: 20px;
+      }
+      .chartCard {
+        width: 100vw;
+        height: calc(100vh - 40px);
+        background: rgba(54, 162, 235, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .chartBox {
+        width: 700px;
+        padding: 20px;
+        border-radius: 20px;
+        border: solid 3px rgba(54, 162, 235, 1);
+        background: white;
+      }
+    </style>
+</head>
+<body>
+<div class="chartMenu">
+  <p>WWW.CHARTJS3.COM (Chart JS <span id="chartVersion"></span>)</p>
+</div>
+<div class="chartCard">
+  <div class="chartBox">
+    <canvas id="myChart"></canvas>
+  </div>
+</div>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<script>
+    // setup
+    const data = {
+
+      datasets: [{
+        label: 'Weekly Sales',
+        data: [{
+        x: new Date('2022-06-01').setHours(0, 0, 0, 0),
+        o: 1.25,
+        h: 1.35,
+        l: 1.00,
+        c: 1.10,
+        s:[1.25, 1.10]
+        },
+        {
+        x: new Date('2022-06-02').setHours(0, 0, 0, 0),
+        o: 1.50,
+        h: 1.35,
+        l: 1.00,
+        c: 1.20,
+        s:[1.50, 1.20]
+        },
+        {
+        x: new Date('2022-06-03').setHours(0, 0, 0, 0),
+        o: 1.70,
+        h: 1.60,
+        l: 1.00,
+        c: 1.10,
+        s:[1.70, 1.10]
+        },
+        {
+        x: new Date('2022-06-04').setHours(0, 0, 0, 0),
+        o: 1.50,
+        h: 1.80,
+        l: 1.20,
+        c: 1.40,
+        s:[1.50, 1.40]
+        },
+        {
+        x: new Date('2022-06-05').setHours(0, 0, 0, 0),
+        o: 1.40,
+        h: 2.00,
+        l: 1.30,
+        c: 1.75,
+        s:[1.40, 1.75]
+        }
+        ],
+
+        backgroundColor: (ctx) => {
+        const { raw: { o, c} } = ctx;
+        console.log(ctx.raw.o)
+        console.log(ctx.raw.c)
+        let color;
+        if(c >= o) {
+        color = 'rgba(75, 192, 192, 1)';
+        } else {
+            color = 'rgba(255, 26, 104, 1)';
+          }
+          return color;
+        },
+
+
+
+        borderColor: 'rgba(0, 0, 0, 1)',
+        borderWidth: 2,
+        borderSkipped: false
+      }]
+    };
+
+    const candlestick = {
+      id: 'candlestick',
+      beforeDatasetsDraw(chart, args, pluginOptions) {
+        const { ctx, data, chartArea: { top, bottom, left, right, width, height }, scales: {x, y
+        } } = chart;
+        ctx.save();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
+        console.log(chart.getDatasetMeta(0).data[0])
+
+
+        data.datasets[0].data.forEach((datapoint, index) => {
+        ctx.beginPath();
+        ctx.moveTo(chart.getDatasetMeta(0).data[index].x, chart.getDatasetMeta(0).data[index].y);
+        ctx.lineTo(chart.getDatasetMeta(0).data[index].x, y.getPixelForValue(data.datasets[0].
+        data[index].h));
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(chart.getDatasetMeta(0).data[index].x, chart.getDatasetMeta(0).data[index].y);
+        ctx.lineTo(chart.getDatasetMeta(0).data[index].x, y.getPixelForValue(data.datasets[0].
+        data[index].l));
+        ctx.stroke();
+
+        })
+      }
+    }
+
+      const movingAverage = {
+      id: 'movingAverage',
+      afterDatasetsDraw(chart, args, pluginOptions) {
+      const { ctx, data, scales: {x, y} } = chart;
+      ctx.save();
+
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(102, 102, 102, 1)';
+      ctx.moveTo(chart.getDatasetMeta(0).data[0].x, y.getPixelForValue(data.datasets[0].data[0].c));
+      for (let i = 1; i < data.datasets[0].data.length; i++) {
+      ctx.lineTo(chart.getDatasetMeta(0).data[i].x, y.getPixelForValue(data.datasets[0].data[i].c));
+      }
+      ctx.stoke();
+      }
+      }
+
+
+
+
+    // config
+    const config = {
+      type: 'bar',
+      data,
+      options: {
+      parsing:{
+      xAxisKey: 'x',
+      yAxisKey: 's',
+      },
+        scales: {
+        x: {
+          type: 'timeseries',
+          time: {
+          unit: 'day'
+          }
+        },
+          y: {
+            beginAtZero: true,
+            grace: 1
+          }
+        }
+      },
+      plugins: [candlestick, movingAverage]
+    };
+
+    // render init block
+    const myChart = new Chart(
+      document.getElementById('myChart'),
+      config
+    );
+
+    // Instantly assign Chart.js version
+    const chartVersion = document.getElementById('chartVersion');
+    chartVersion.innerText = Chart.version;
+    </script>
+
+</body>
+</html>
