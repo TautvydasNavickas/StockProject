@@ -2,39 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Stock Charts</title>
-    <link rel="stylesheet" href="style.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/2.0.0/luxon.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@2.0.0/dist/chartjs-adapter-moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.1.1/dist/chartjs-chart-financial.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-
-    <script src="script.js"></script>
-
-
-
-
+    <title>Stock Tracker</title>
+    <!-- Include ApexCharts library -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@latest"></script>
 </head>
 <body>
-<div id="chartContainer">
-    <canvas id="ohlcChart"></canvas>
-</div>
-
-<form>
+<div>
     <label for="stockTicker">Stock Ticker:</label>
-    <input type="text" id="stockTicker" required>
-    <br>
+    <input type="text" id="stockTicker" name="stockTicker" value="AAPL"><br><br>
     <label for="startDate">Start Date:</label>
-    <input type="date" id="startDate" required>
-    <br>
+    <input type="date" id="startDate" name="startDate"><br><br>
     <label for="endDate">End Date:</label>
-    <input type="date" id="endDate" required>
-    <br>
-    <button id="fetchDataBtn">Fetch Data</button>
-</form>
+    <input type="date" id="endDate" name="endDate"><br><br>
+    <button id="refreshChartsButton">Refresh Charts</button>
+</div>
+<div id="candlestickChart"></div>
+<div id="volumeChart"></div>
 
+<script>
+    const candlestickChartOptions = {
+        chart: {
+            type: 'candlestick',
+            height: 350,
+        },
+        series: [{
+            data: [],
+        }],
+        xaxis: {
+            type: 'datetime',
+        },
+    };
 
+    const volumeChartOptions = {
+        chart: {
+            type: 'bar',
+            height: 200,
+        },
+        series: [{
+            data: [],
+        }],
+        xaxis: {
+            type: 'datetime',
+        },
+    };
+
+    const candlestickChart = new ApexCharts(document.querySelector("#candlestickChart"), candlestickChartOptions);
+    const volumeChart = new ApexCharts(document.querySelector("#volumeChart"), volumeChartOptions);
+
+    document.getElementById("refreshChartsButton").addEventListener("click", function() {
+        const stockTicker = document.getElementById("stockTicker").value;
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+
+        fetch(`/refreshCharts?stockTicker=${stockTicker}&startDate=${startDate}&endDate=${endDate}`)
+            .then(response => response.json())
+            .then(data => {
+                const candlestickData = data.map(stockData => ({
+                    x: new Date(stockData.date),
+                    y: [stockData.open, stockData.high, stockData.low, stockData.close],
+                }));
+
+                const volumeData = data
+    .filter(stockData => stockData.volume > 0)
+    .map(stockData => ({
+        x: new Date(stockData.date),
+        y: stockData.volume,
+    }));
+
+                candlestickChart.updateSeries([{ data: candlestickData }]);
+                volumeChart.updateSeries([{ data: volumeData }]);
+            });
+    });
+
+    candlestickChart.render();
+    volumeChart.render();
+</script>
 </body>
 </html>
