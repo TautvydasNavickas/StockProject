@@ -3,6 +3,8 @@ package com.example.demo.Service;
 import com.example.demo.Model.StockData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -18,13 +20,37 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class FinanceService {
-    StockData stockData;
-    private static final String API_KEY = "2ce7137d60f366d7d94e6afe86883ddc"; // Replace with your API key
+
+    private static final String API_KEY = "2ce7137d60f366d7d94e6afe86883ddc";
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+
+    private final Cache<String, List<StockData>> stockDataCache = Caffeine.newBuilder()
+            .maximumSize(100)
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .build();
+
     public List<StockData> getStockData(String ticker, LocalDate startDate, LocalDate endDate) throws IOException {
+        String cacheKey = ticker + startDate.toString() + endDate.toString();
+        List<StockData> cachedData = stockDataCache.getIfPresent(cacheKey);
+        if (cachedData != null) {
+            return cachedData;
+        }
+
+
+        List<StockData> stockDataList = fetchStockData(ticker, startDate, endDate);
+
+
+        stockDataCache.put(cacheKey, stockDataList);
+
+        return stockDataList;
+    }
+
+    private List<StockData> fetchStockData(String ticker, LocalDate startDate, LocalDate endDate) throws IOException {
         String encodedTicker = URLEncoder.encode(ticker, StandardCharsets.UTF_8);
         String encodedStartDate = startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String encodedEndDate = endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -67,7 +93,4 @@ public class FinanceService {
 
         return stockDataList;
     }
-
-
-
 }
