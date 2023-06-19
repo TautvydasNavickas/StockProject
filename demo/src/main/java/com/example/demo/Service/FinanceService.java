@@ -11,6 +11,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -24,8 +25,8 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class FinanceService {
-
-    private static final String API_KEY = "2ce7137d60f366d7d94e6afe86883ddc";
+    @Value("${api.key}")
+    private String API_KEY;
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
 
