@@ -14,6 +14,8 @@
     <input type="date" id="startDate" name="startDate"><br><br>
     <label for="endDate">End Date:</label>
     <input type="date" id="endDate" name="endDate"><br><br>
+    <input type="checkbox" id="volumeCheckbox" name="volumeCheckbox">
+    <label for="volumeCheckbox">Show Volume Chart</label><br><br>
     <button id="refreshChartsButton">Refresh Charts</button>
 </div>
 <div id="candlestickChart"></div>
@@ -44,6 +46,9 @@
         xaxis: {
             type: 'datetime',
         },
+        dataLabels: {
+            enabled: false,
+        },
     };
 
     const candlestickChart = new ApexCharts(document.querySelector("#candlestickChart"), candlestickChartOptions);
@@ -63,14 +68,23 @@
                 }));
 
                 const volumeData = data
-    .filter(stockData => stockData.volume > 0)
-    .map(stockData => ({
-        x: new Date(stockData.date),
-        y: stockData.volume,
-    }));
+                    .filter(stockData => stockData.volume > 0)
+                    .map(stockData => ({
+                        x: new Date(stockData.date),
+                        y: stockData.volume,
+                    }));
 
                 candlestickChart.updateSeries([{ data: candlestickData }]);
-                volumeChart.updateSeries([{ data: volumeData }]);
+
+                if (document.getElementById("volumeCheckbox").checked) {
+                    volumeChart.updateSeries([{ data: volumeData }]);
+                    volumeChart.render();
+                    document.getElementById("volumeChart").style.display = "block";
+                } else {
+                    volumeChart.updateSeries([{ data: [] }]);
+                    volumeChart.updateOptions({ chart: { toolbar: { show: false } } });
+                    document.getElementById("volumeChart").style.display = "none";
+                }
             });
     });
 
