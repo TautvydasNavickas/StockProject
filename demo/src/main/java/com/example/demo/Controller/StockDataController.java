@@ -1,7 +1,7 @@
 package com.example.demo.Controller;
 
 import com.example.demo.Model.StockData;
-import com.example.demo.Service.FinanceService;
+import com.example.demo.Service.StockDataService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +15,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Controller
-public class FinanceController {
-    private final FinanceService financeService;
+public class StockDataController {
+    private final StockDataService stockDataService;
 
-    public FinanceController(FinanceService financeService) {
-        this.financeService = financeService;
+    public StockDataController(StockDataService stockDataService) {
+        this.stockDataService = stockDataService;
     }
 
     @GetMapping("/")
@@ -36,7 +36,7 @@ public class FinanceController {
             LocalDate startLocalDate = LocalDate.parse(startDate.trim(), dateFormatter);
             LocalDate endLocalDate = LocalDate.parse(endDate.trim(), dateFormatter);
 
-            List<StockData> stockDataList = financeService.getStockData(stockTicker, startLocalDate, endLocalDate);
+            List<StockData> stockDataList = stockDataService.getStockData(stockTicker, startLocalDate, endLocalDate);
             return ResponseEntity.ok(stockDataList);
         } catch (IOException e) {
             e.printStackTrace();

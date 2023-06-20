@@ -10,6 +10,9 @@ public class StockData {
     private double low;
     private double close;
     private long volume;
+
+    private double movingAverage5;
+    private double movingAverage20;
     private long unadjustedVolume;
     private double adjClose;
 
@@ -18,6 +21,23 @@ public class StockData {
     private double vwap;
     private String label;
     private double changeOverTime;
+
+
+    public double getMovingAverage5() {
+        return movingAverage5;
+    }
+
+    public void setMovingAverage5(double movingAverage5) {
+        this.movingAverage5 = movingAverage5;
+    }
+
+    public double getMovingAverage20() {
+        return movingAverage20;
+    }
+
+    public void setMovingAverage20(double movingAverage20) {
+        this.movingAverage20 = movingAverage20;
+    }
 
     public double getChange() {
         return change;

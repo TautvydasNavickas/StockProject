@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class FinanceService {
+public class StockDataService {
     @Value("${api.key}")
     private String API_KEY;
     public static final ObjectMapper objectMapper = new ObjectMapper();
@@ -34,6 +34,7 @@ public class FinanceService {
             .maximumSize(100)
             .expireAfterWrite(5, TimeUnit.MINUTES)
             .build();
+
 
     public List<StockData> getStockData(String ticker, LocalDate startDate, LocalDate endDate) throws IOException {
         String cacheKey = ticker + startDate.toString() + endDate.toString();
@@ -45,13 +46,38 @@ public class FinanceService {
 
         List<StockData> stockDataList = fetchStockData(ticker, startDate, endDate);
 
+        calculateMovingAverages(stockDataList);
 
         stockDataCache.put(cacheKey, stockDataList);
 
         return stockDataList;
     }
 
-    private List<StockData> fetchStockData(String ticker, LocalDate startDate, LocalDate endDate) throws IOException {
+
+    private void calculateMovingAverages(List<StockData> stockDataList) {
+        // Calculate moving averages for each data point
+        for (int i = 0; i < stockDataList.size(); i++) {
+            if (i >= 4) {
+                double sum5 = 0;
+                for (int j = i - 4; j <= i; j++) {
+                    sum5 += stockDataList.get(j).getClose();
+                }
+                double movingAverage5 = sum5 / 5;
+                stockDataList.get(i).setMovingAverage5(movingAverage5);
+            }
+
+            if (i >= 19) {
+                double sum20 = 0;
+                for (int j = i - 19; j <= i; j++) {
+                    sum20 += stockDataList.get(j).getClose();
+                }
+                double movingAverage20 = sum20 / 20;
+                stockDataList.get(i).setMovingAverage20(movingAverage20);
+            }
+        }
+    }
+
+    public List<StockData> fetchStockData(String ticker, LocalDate startDate, LocalDate endDate) throws IOException {
         String encodedTicker = URLEncoder.encode(ticker, StandardCharsets.UTF_8);
         String encodedStartDate = startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String encodedEndDate = endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -72,7 +98,7 @@ public class FinanceService {
 
         JsonNode rootNode = objectMapper.readTree(json);
         JsonNode historicalNode = rootNode.get("historical");
-        if (historicalNode.isArray()) {
+        if (historicalNode != null && historicalNode.isArray()) {
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
             for (JsonNode node : historicalNode) {

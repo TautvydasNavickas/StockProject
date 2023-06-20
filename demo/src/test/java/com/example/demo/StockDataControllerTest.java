@@ -1,8 +1,8 @@
 package com.example.demo;
 
-import com.example.demo.Controller.FinanceController;
+import com.example.demo.Controller.StockDataController;
 import com.example.demo.Model.StockData;
-import com.example.demo.Service.FinanceService;
+import com.example.demo.Service.StockDataService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -20,16 +20,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-public class FinanceControllerTest {
+public class StockDataControllerTest {
     @Mock
-    private FinanceService financeService;
+    private StockDataService stockDataService;
 
-    private FinanceController financeController;
+    private StockDataController stockDataController;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        financeController = new FinanceController(financeService);
+        stockDataController = new StockDataController(stockDataService);
     }
 
     @Test
@@ -42,16 +42,16 @@ public class FinanceControllerTest {
         LocalDate endLocalDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         List<StockData> expectedStockDataList = Collections.singletonList(new StockData());
 
-        when(financeService.getStockData(eq(stockTicker), eq(startLocalDate), eq(endLocalDate)))
+        when(stockDataService.getStockData(eq(stockTicker), eq(startLocalDate), eq(endLocalDate)))
                 .thenReturn(expectedStockDataList);
 
         // Act
-        ResponseEntity<List<StockData>> response = financeController.refreshCharts(stockTicker, startDate, endDate);
+        ResponseEntity<List<StockData>> response = stockDataController.refreshCharts(stockTicker, startDate, endDate);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedStockDataList, response.getBody());
-        verify(financeService, times(1)).getStockData(eq(stockTicker), eq(startLocalDate), eq(endLocalDate));
+        verify(stockDataService, times(1)).getStockData(eq(stockTicker), eq(startLocalDate), eq(endLocalDate));
     }
 
 
@@ -65,14 +65,14 @@ public class FinanceControllerTest {
         LocalDate startLocalDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         LocalDate endLocalDate = LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        when(financeService.getStockData(eq(stockTicker), eq(startLocalDate), eq(endLocalDate)))
+        when(stockDataService.getStockData(eq(stockTicker), eq(startLocalDate), eq(endLocalDate)))
                 .thenThrow(new IOException());
 
         // Act
-        ResponseEntity<List<StockData>> response = financeController.refreshCharts(stockTicker, startDate, endDate);
+        ResponseEntity<List<StockData>> response = stockDataController.refreshCharts(stockTicker, startDate, endDate);
 
         // Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        verify(financeService, times(1)).getStockData(eq(stockTicker), eq(startLocalDate), eq(endLocalDate));
+        verify(stockDataService, times(1)).getStockData(eq(stockTicker), eq(startLocalDate), eq(endLocalDate));
     }
 }

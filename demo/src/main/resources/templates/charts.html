@@ -11,15 +11,18 @@
     <label for="stockTicker">Stock Ticker:</label>
     <input type="text" id="stockTicker" name="stockTicker" value="AAPL"><br><br>
     <label for="startDate">Start Date:</label>
-    <input type="date" id="startDate" name="startDate"><br><br>
+    <input type="date" id="startDate" name="startDate" value="2015-01-01"><br><br>
     <label for="endDate">End Date:</label>
-    <input type="date" id="endDate" name="endDate"><br><br>
+    <input type="date" id="endDate" name="endDate" value="2017-01-01"><br><br>
     <input type="checkbox" id="volumeCheckbox" name="volumeCheckbox">
     <label for="volumeCheckbox">Show Volume Chart</label><br><br>
+    <input type="checkbox" id="movingAverageCheckbox" name="movingAverageCheckbox">
+    <label for="movingAverageCheckbox">Show Moving Average Chart</label><br><br>
     <button id="refreshChartsButton">Refresh Charts</button>
 </div>
 <div id="candlestickChart"></div>
 <div id="volumeChart"></div>
+<div id="movingAverageChart"></div>
 
 <script>
     const candlestickChartOptions = {
@@ -51,10 +54,25 @@
         },
     };
 
+    const movingAverageChartOptions = {
+        chart: {
+            type: 'line',
+            height: 200,
+        },
+        series: [],
+        xaxis: {
+            type: 'datetime',
+        },
+        stroke: {
+            width: 1, // Adjust the line thickness here (default is 2)
+        },
+    };
+
     const candlestickChart = new ApexCharts(document.querySelector("#candlestickChart"), candlestickChartOptions);
     const volumeChart = new ApexCharts(document.querySelector("#volumeChart"), volumeChartOptions);
+    const movingAverageChart = new ApexCharts(document.querySelector("#movingAverageChart"), movingAverageChartOptions);
 
-    document.getElementById("refreshChartsButton").addEventListener("click", function() {
+    document.getElementById("refreshChartsButton").addEventListener("click", function () {
         const stockTicker = document.getElementById("stockTicker").value;
         const startDate = document.getElementById("startDate").value;
         const endDate = document.getElementById("endDate").value;
@@ -74,22 +92,46 @@
                         y: stockData.volume,
                     }));
 
-                candlestickChart.updateSeries([{ data: candlestickData }]);
+                const movingAverageData5 = data.map(stockData => ({
+                    x: new Date(stockData.date),
+                    y: stockData.movingAverage5,
+                }));
+
+                const movingAverageData20 = data.map(stockData => ({
+                    x: new Date(stockData.date),
+                    y: stockData.movingAverage20,
+                }));
+
+                candlestickChart.updateSeries([{data: candlestickData}]);
 
                 if (document.getElementById("volumeCheckbox").checked) {
-                    volumeChart.updateSeries([{ data: volumeData }]);
+                    volumeChart.updateSeries([{data: volumeData}]);
                     volumeChart.render();
                     document.getElementById("volumeChart").style.display = "block";
                 } else {
-                    volumeChart.updateSeries([{ data: [] }]);
-                    volumeChart.updateOptions({ chart: { toolbar: { show: false } } });
+                    volumeChart.updateSeries([{data: []}]);
+                    volumeChart.updateOptions({chart: {toolbar: {show: false}}});
                     document.getElementById("volumeChart").style.display = "none";
+                }
+
+                if (document.getElementById("movingAverageCheckbox").checked) {
+                    movingAverageChart.updateSeries([
+                        {name: 'Moving Average (5)', data: movingAverageData5},
+                        {name: 'Moving Average (20)', data: movingAverageData20}
+                    ]);
+                    movingAverageChart.render();
+                    document.getElementById("movingAverageChart").style.display = "block";
+                } else {
+                    movingAverageChart.updateSeries([]);
+                    movingAverageChart.updateOptions({chart: {toolbar: {show: false}}});
+                    document.getElementById("movingAverageChart").style.display = "none";
                 }
             });
     });
 
     candlestickChart.render();
     volumeChart.render();
+    movingAverageChart.render();
 </script>
 </body>
 </html>
