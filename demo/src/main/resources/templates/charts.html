@@ -94,12 +94,12 @@
 
                 const movingAverageData5 = data.map(stockData => ({
                     x: new Date(stockData.date),
-                    y: stockData.movingAverage5,
+                    y: stockData.movingAverage5.toFixed(2),
                 }));
 
                 const movingAverageData20 = data.map(stockData => ({
                     x: new Date(stockData.date),
-                    y: stockData.movingAverage20,
+                    y: stockData.movingAverage20.toFixed(2),
                 }));
 
                 candlestickChart.updateSeries([{data: candlestickData}]);

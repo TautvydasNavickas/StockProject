@@ -1,6 +1,7 @@
 package com.example.demo.Service;
 
 import com.example.demo.Model.StockData;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -43,19 +44,26 @@ public class StockDataService {
             return cachedData;
         }
 
-
-        List<StockData> stockDataList = fetchStockData(ticker, startDate, endDate);
+        List<StockData> stockDataList;
+        try {
+            stockDataList = fetchStockData(ticker, startDate, endDate);
+        } catch (IOException e) {
+            throw new IOException("Failed to fetch stock data from the API.", e);
+        }
 
         calculateMovingAverages(stockDataList);
 
-        stockDataCache.put(cacheKey, stockDataList);
+        try {
+            stockDataCache.put(cacheKey, stockDataList);
+        } catch (Exception e) {
+            throw new IOException("Failed to cache stock data.", e);
+        }
 
         return stockDataList;
     }
 
 
     private void calculateMovingAverages(List<StockData> stockDataList) {
-        // Calculate moving averages for each data point
         for (int i = 0; i < stockDataList.size(); i++) {
             if (i >= 4) {
                 double sum5 = 0;
@@ -90,13 +98,27 @@ public class StockDataService {
 
         HttpClient httpClient = HttpClientBuilder.create().build();
         HttpGet request = new HttpGet(url);
-        HttpResponse response = httpClient.execute(request);
+        HttpResponse response;
+        try {
+            response = httpClient.execute(request);
+        } catch (IOException e) {
+
+            throw new IOException("Failed to execute HTTP request.", e);
+        }
+
         HttpEntity entity = response.getEntity();
         String json = EntityUtils.toString(entity);
 
         List<StockData> stockDataList = new ArrayList<>();
 
-        JsonNode rootNode = objectMapper.readTree(json);
+        JsonNode rootNode;
+        try {
+            rootNode = objectMapper.readTree(json);
+        } catch (JsonProcessingException e) {
+
+            throw new IOException("Failed to parse JSON response from the API.", e);
+        }
+
         JsonNode historicalNode = rootNode.get("historical");
         if (historicalNode != null && historicalNode.isArray()) {
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -104,7 +126,6 @@ public class StockDataService {
             for (JsonNode node : historicalNode) {
                 String date = node.get("date").asText();
                 LocalDate currentDate = LocalDate.parse(date, dateFormatter);
-
                 if (!currentDate.isBefore(startDate) && !currentDate.isAfter(endDate)) {
                     StockData stockData = new StockData();
                     stockData.setDate(LocalDate.parse(date));
