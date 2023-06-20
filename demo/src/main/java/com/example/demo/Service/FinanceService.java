@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class FinanceService {
     @Value("${api.key}")
     private String API_KEY;
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    public static final ObjectMapper objectMapper = new ObjectMapper();
 
 
     private final Cache<String, List<StockData>> stockDataCache = Caffeine.newBuilder()
